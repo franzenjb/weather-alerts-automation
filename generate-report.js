@@ -3,11 +3,39 @@ const axios = require('axios');
 const fs = require('fs').promises;
 
 async function generateWeatherReport() {
-  const prompt = `Current date: Saturday, May 31, 2025
+  // Generate current date and 5-day range dynamically
+  const today = new Date();
+  const day5 = new Date(today);
+  day5.setDate(today.getDate() + 4);
+  
+  const formatDate = (date) => {
+    const options = { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    };
+    return date.toLocaleDateString('en-US', options);
+  };
+  
+  const formatDateShort = (date) => {
+    const options = { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    };
+    return date.toLocaleDateString('en-US', options);
+  };
+  
+  const todayFormatted = formatDate(today);
+  const todayShort = formatDateShort(today);
+  const day5Short = formatDateShort(day5);
+
+  const prompt = `TODAY IS ${todayFormatted.toUpperCase()}. Generate a weather report for ${todayShort.toUpperCase()} through ${day5Short.toUpperCase()}.
 
 AARC 5-Day Weather Risk Report Generator
 TASK
-Generate a detailed weather risk report for the next 5 days (today through day 5) covering these states:
+Generate a detailed weather risk report for the next 5 days (${todayShort} through ${day5Short}) covering these states:
 TN, MS, GA, AL, FL, NC, SC
 Include USVI only if threat level is RED or ORANGE
 
@@ -35,7 +63,7 @@ The HTML must begin with:
 
 CONTENT SECTIONS
 Date Header:
-<h2 style="color:#990000; font-weight:bold;">[Today's Date] - [Day 5 Date]</h2>
+<h2 style="color:#990000; font-weight:bold;">${todayShort} - ${day5Short}</h2>
 
 Severe Weather Threats:
 <h3 style="color:#990000; font-weight:bold;">Severe Weather Threats (5-Day Outlook)</h3>

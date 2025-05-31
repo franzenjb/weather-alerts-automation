@@ -8,6 +8,11 @@ async function generateWeatherReport() {
   const day5 = new Date(today);
   day5.setDate(today.getDate() + 4);
   
+  // DEBUG: Log what JavaScript thinks the date is
+  console.log('JavaScript thinks today is:', today.toString());
+  console.log('JavaScript timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
+  console.log('JavaScript UTC date:', today.toISOString());
+  
   const formatDate = (date) => {
     const options = { 
       weekday: 'long', 
@@ -31,66 +36,81 @@ async function generateWeatherReport() {
   const todayShort = formatDateShort(today);
   const day5Short = formatDateShort(day5);
 
-  const prompt = `Fill in this weather report template with CURRENT weather data for the southeastern US (TN, MS, GA, AL, FL, NC, SC) for the dates ${todayShort} through ${day5Short}.
+  console.log('Formatted dates:', todayShort, 'through', day5Short);
 
-<div style="background-color:#ffffff; font-family:Arial; color:#333333; font-size:16px; line-height:1.6; padding:24px; margin:0;">
+  const prompt = `Generate current weather threat information for southeastern US states (TN, MS, GA, AL, FL, NC, SC).
+
+Include any active weather risks like severe thunderstorms, tornadoes, flooding, high winds, or hail.
+Format as: Day X: [Risk Level] [Areas] [Hazards] [Timing]
+
+Do not include any dates - just day numbers (Day 1, Day 2, etc.) and weather information.
+If no threats exist, state: "No significant weather threats."
+
+Response should be plain text, no HTML.`;
+
+  try {
+    // Call OpenAI API
+    const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a weather expert generating emergency management reports. Today is ${todayFormatted}. Always use current dates: ${todayShort} through ${day5Short}.`
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      max_tokens: 4000,
+      temperature: 0.1
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+      }
+    });
+
+    const weatherData = response.data.choices[0].message.content;
+    
+    console.log('Raw weather data from OpenAI:', weatherData);
+    
+    // Create the complete HTML with correct dates using JavaScript
+    const correctedHtml = `<div style="background-color:#ffffff; font-family:Arial; color:#333333; font-size:16px; line-height:1.6; padding:24px; margin:0;">
 <h2 style="color:#990000; font-weight:bold;">${todayShort} - ${day5Short}</h2>
 
 <h3 style="color:#990000; font-weight:bold;">Severe Weather Threats (5-Day Outlook)</h3>
 
-[Replace this with current SPC outlook data for the specified dates and regions. Include any ENHANCED, SLIGHT, or MARGINAL risks. If no threats exist, state "There are no active severe weather threats in the covered regions over the next 5 days."]
+<div style="padding: 10px 0;">
+${weatherData.replace(/Day (\d+)/g, (match, dayNum) => {
+  const dayDate = new Date(today);
+  dayDate.setDate(today.getDate() + (parseInt(dayNum) - 1));
+  const dayName = dayDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  return `<strong>Day ${dayNum} (${dayName})</strong>`;
+})}
+</div>
 
 <h3 style="color:#990000; font-weight:bold;">Recommendations</h3>
 <h4 style="color:#990000; font-weight:bold;">Immediate Actions</h4>
 <ul>
-[Replace with current recommended actions based on the weather threats]
+<li>Monitor local NWS forecasts and warnings for your specific area</li>
+<li>Review emergency plans and communication procedures</li>
+<li>Ensure emergency supplies are readily accessible</li>
+<li>Stay informed of changing weather conditions</li>
 </ul>
 
 <h4 style="color:#990000; font-weight:bold;">5-Day Monitoring</h4>
 <ul>
-[Replace with current 5-day monitoring recommendations]
+<li>Check weather updates twice daily</li>
+<li>Monitor NWS warnings and watches</li>
+<li>Be prepared to implement emergency procedures if conditions worsen</li>
+<li>Keep communication devices charged and operational</li>
 </ul>
 
 <p style="font-size:14px; color:#666;">Sources: NWS Storm Prediction Center, NOAA, FEMA, and state emergency management agencies.</p>
-</div>
-
-Return only the completed HTML with the brackets replaced by actual current weather data. Do not change the dates in the header.`;
-
-  try {
-    // Call Claude API
-    const response = await axios.post('https://api.anthropic.com/v1/messages', {
-      model: 'claude-3-opus-20240229',
-      max_tokens: 4000,
-      messages: [{
-        role: 'user',
-        content: prompt
-      }]
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
-      }
-    });
-
-    const htmlContent = response.data.content[0].text;
+</div>`;
     
-    // FORCE correct dates by replacing whatever Claude generates
-    let correctedHtml = htmlContent;
-    
-    // Replace any date header Claude generates with our correct dates
-    correctedHtml = correctedHtml.replace(
-      /<h2[^>]*>.*?<\/h2>/i,
-      `<h2 style="color:#990000; font-weight:bold;">${todayShort} - ${day5Short}</h2>`
-    );
-    
-    // Replace any standalone date ranges in the content
-    correctedHtml = correctedHtml.replace(
-      /\b\w+\s+\d{1,2}\s*-\s*\w+\s+\d{1,2},\s*20\d{2}/g,
-      `${todayShort} - ${day5Short}`
-    );
-    
-    console.log('Generated report with corrected dates:', todayShort, '-', day5Short);
+    console.log('Generated HTML with correct dates');
     
     // Create output directory
     await fs.mkdir('./output', { recursive: true });

@@ -3,7 +3,9 @@ const axios = require('axios');
 const fs = require('fs').promises;
 
 async function generateWeatherReport() {
-  const prompt = `AARC 5-Day Weather Risk Report Generator
+  const prompt = `Current date: Saturday, May 31, 2025
+
+AARC 5-Day Weather Risk Report Generator
 TASK
 Generate a detailed weather risk report for the next 5 days (today through day 5) covering these states:
 TN, MS, GA, AL, FL, NC, SC
@@ -60,6 +62,7 @@ CRITICAL REQUIREMENT
 NEVER ignore SPC categorical outlooks - ENHANCED, SLIGHT, and MARGINAL risks are ALL significant for emergency management operations and MUST be included.`;
 
   try {
+    // Call Claude API
     const response = await axios.post('https://api.anthropic.com/v1/messages', {
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 4000,
@@ -77,8 +80,10 @@ NEVER ignore SPC categorical outlooks - ENHANCED, SLIGHT, and MARGINAL risks are
 
     const htmlContent = response.data.content[0].text;
     
+    // Create output directory
     await fs.mkdir('./output', { recursive: true });
     
+    // Save HTML for debugging
     await fs.writeFile('./output/weather-report.html', `
       <!DOCTYPE html>
       <html>
@@ -93,20 +98,21 @@ NEVER ignore SPC categorical outlooks - ENHANCED, SLIGHT, and MARGINAL risks are
       </html>
     `);
 
+    // Generate PNG using Puppeteer
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
     
     const page = await browser.newPage();
-    await page.setViewport({ width: 1200, height: 1600, deviceScaleFactor: 2 });
+    await page.setViewport({ width: 1400, height: 1800, deviceScaleFactor: 1.5 });
     await page.setContent(`
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="UTF-8">
         <style>
-          body { margin: 0; padding: 20px; background: white; }
+          body { margin: 0; padding: 30px; background: white; max-width: 1200px; }
         </style>
       </head>
       <body>
@@ -115,6 +121,7 @@ NEVER ignore SPC categorical outlooks - ENHANCED, SLIGHT, and MARGINAL risks are
       </html>
     `, { waitUntil: 'networkidle0' });
 
+    // Take screenshot
     await page.screenshot({
       path: './output/weather-alert.png',
       fullPage: true,
@@ -123,6 +130,7 @@ NEVER ignore SPC categorical outlooks - ENHANCED, SLIGHT, and MARGINAL risks are
 
     await browser.close();
     
+    // Create index.html for GitHub Pages
     await fs.writeFile('./output/index.html', `
       <!DOCTYPE html>
       <html>

@@ -31,63 +31,13 @@ async function generateWeatherReport() {
   const todayShort = formatDateShort(today);
   const day5Short = formatDateShort(day5);
 
-  const prompt = `TODAY IS ${todayFormatted.toUpperCase()}. Generate a weather report for ${todayShort.toUpperCase()} through ${day5Short.toUpperCase()}.
+  const prompt = `You are generating a weather report for emergency management. 
 
-AARC 5-Day Weather Risk Report Generator
-TASK
-Generate a detailed weather risk report for the next 5 days (${todayShort} through ${day5Short}) covering these states:
-TN, MS, GA, AL, FL, NC, SC
-Include USVI only if threat level is RED or ORANGE
+CRITICAL: Today is ${todayFormatted} and you must generate a report for the 5-day period from ${todayShort} through ${day5Short}. Do not use any other dates.
 
-SOURCE REQUIREMENTS
-Use ONLY official sources: NWS, NOAA, SPC, WPC, NHC, FEMA, or state EMAs
-NO seasonal commentary, historical context, speculation, or third-party sources
-MUST check SPC Day 1-3 Convective Outlooks and Day 4-8 Fire Weather Outlooks
-MUST check WPC excessive rainfall outlooks
-MUST check NHC tropical outlooks
+Create an HTML weather risk report with these EXACT dates: ${todayShort} - ${day5Short}
 
-OUTPUT FORMAT
-Produce ONE clean HTML block with inline CSS only
-DO NOT include <html>, <body>, <head> tags or markdown formatting
-NO content references, escape characters, previews, or explanations
-DO NOT split into multiple responses
-DO NOT minify or compress code
-DO NOT output anything before or after the main <div> block
-
-Specific Text Styling for Hazards:
-MUST use <span style="font-weight:bold;">...</span> tags to bold key hazard terms such as "damaging winds (58+ mph)", "large hail", "small hail", "tornadoes possible", "flooding", etc. This applies when these terms appear in the "Primary Hazards" description for each threat AND if similar key hazard terms are mentioned in the "Recommendations" section (e.g., within <li> action items or general advice).
-
-HTML STRUCTURE
-The HTML must begin with:
-<div style="background-color:#ffffff; font-family:Arial; color:#333333; font-size:16px; line-height:1.6; padding:24px; margin:0;"> And end with: </div>
-
-CONTENT SECTIONS
-Date Header:
-<h2 style="color:#990000; font-weight:bold;">${todayShort} - ${day5Short}</h2>
-
-Severe Weather Threats:
-<h3 style="color:#990000; font-weight:bold;">Severe Weather Threats (5-Day Outlook)</h3>
-Include ALL active threats ENHANCED, SLIGHT, MARGINAL or higher from SPC
-For each threat, include:
-Hazard name
-Day/Timing
-Affected Areas
-Primary Hazards (Ensure key terms are bolded as per "Specific Text Styling for Hazards" above)
-Readiness Level using:
-<span style="color:#cc0000; font-weight:bold;">ENHANCED</span>
-<span style="color:#e67300; font-weight:bold;">SLIGHT</span>
-<span style="color:#ffcc00; font-weight:bold;">MARGINAL</span>
-If no threats exist, use:
-<p>There are no active severe weather threats in the covered regions over the next 5 days.</p>
-
-Recommendations:
-<h3 style="color:#990000; font-weight:bold;">Recommendations</h3> <h4 style="color:#990000; font-weight:bold;">Immediate Actions</h4> <ul> <li>[Action item - Ensure key hazard terms mentioned are bolded as per "Specific Text Styling for Hazards" above]</li> </ul> <h4 style="color:#990000; font-weight:bold;">5-Day Monitoring</h4> <ul> <li>[Monitoring item - Ensure key hazard terms mentioned are bolded as per "Specific Text Styling for Hazards" above]</li> </ul>
-
-Attribution:
-<p style="font-size:14px; color:#666;">Sources: NWS Storm Prediction Center, NOAA, FEMA, and state emergency management agencies.</p>
-
-CRITICAL REQUIREMENT
-NEVER ignore SPC categorical outlooks - ENHANCED, SLIGHT, and MARGINAL risks are ALL significant for emergency management operations and MUST be included.`;
+Generate current, real-time weather data for these southeastern US states: TN, MS, GA, AL, FL, NC, SC`;
 
   try {
     // Call Claude API

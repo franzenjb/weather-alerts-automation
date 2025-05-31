@@ -31,13 +31,30 @@ async function generateWeatherReport() {
   const todayShort = formatDateShort(today);
   const day5Short = formatDateShort(day5);
 
-  const prompt = `You are generating a weather report for emergency management. 
+  const prompt = `Fill in this weather report template with CURRENT weather data for the southeastern US (TN, MS, GA, AL, FL, NC, SC) for the dates ${todayShort} through ${day5Short}.
 
-CRITICAL: Today is ${todayFormatted} and you must generate a report for the 5-day period from ${todayShort} through ${day5Short}. Do not use any other dates.
+<div style="background-color:#ffffff; font-family:Arial; color:#333333; font-size:16px; line-height:1.6; padding:24px; margin:0;">
+<h2 style="color:#990000; font-weight:bold;">${todayShort} - ${day5Short}</h2>
 
-Create an HTML weather risk report with these EXACT dates: ${todayShort} - ${day5Short}
+<h3 style="color:#990000; font-weight:bold;">Severe Weather Threats (5-Day Outlook)</h3>
 
-Generate current, real-time weather data for these southeastern US states: TN, MS, GA, AL, FL, NC, SC`;
+[Replace this with current SPC outlook data for the specified dates and regions. Include any ENHANCED, SLIGHT, or MARGINAL risks. If no threats exist, state "There are no active severe weather threats in the covered regions over the next 5 days."]
+
+<h3 style="color:#990000; font-weight:bold;">Recommendations</h3>
+<h4 style="color:#990000; font-weight:bold;">Immediate Actions</h4>
+<ul>
+[Replace with current recommended actions based on the weather threats]
+</ul>
+
+<h4 style="color:#990000; font-weight:bold;">5-Day Monitoring</h4>
+<ul>
+[Replace with current 5-day monitoring recommendations]
+</ul>
+
+<p style="font-size:14px; color:#666;">Sources: NWS Storm Prediction Center, NOAA, FEMA, and state emergency management agencies.</p>
+</div>
+
+Return only the completed HTML with the brackets replaced by actual current weather data. Do not change the dates in the header.`;
 
   try {
     // Call Claude API

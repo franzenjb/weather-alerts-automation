@@ -75,6 +75,23 @@ Return only the completed HTML with the brackets replaced by actual current weat
 
     const htmlContent = response.data.content[0].text;
     
+    // FORCE correct dates by replacing whatever Claude generates
+    let correctedHtml = htmlContent;
+    
+    // Replace any date header Claude generates with our correct dates
+    correctedHtml = correctedHtml.replace(
+      /<h2[^>]*>.*?<\/h2>/i,
+      `<h2 style="color:#990000; font-weight:bold;">${todayShort} - ${day5Short}</h2>`
+    );
+    
+    // Replace any standalone date ranges in the content
+    correctedHtml = correctedHtml.replace(
+      /\b\w+\s+\d{1,2}\s*-\s*\w+\s+\d{1,2},\s*20\d{2}/g,
+      `${todayShort} - ${day5Short}`
+    );
+    
+    console.log('Generated report with corrected dates:', todayShort, '-', day5Short);
+    
     // Create output directory
     await fs.mkdir('./output', { recursive: true });
     
@@ -88,7 +105,7 @@ Return only the completed HTML with the brackets replaced by actual current weat
         <title>Weather Alert</title>
       </head>
       <body style="margin:0; padding:0;">
-        ${htmlContent}
+        ${correctedHtml}
       </body>
       </html>
     `);
@@ -111,7 +128,7 @@ Return only the completed HTML with the brackets replaced by actual current weat
         </style>
       </head>
       <body>
-        ${htmlContent}
+        ${correctedHtml}
       </body>
       </html>
     `, { waitUntil: 'networkidle0' });
